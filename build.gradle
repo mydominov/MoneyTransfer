@@ -1,0 +1,61 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.3.41'
+    id 'org.unbroken-dome.test-sets' version '2.1.1'
+    id 'war'
+}
+
+group 'com.nick.moneytransfer'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://dl.bintray.com/kotlin/exposed'
+    }
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "10"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "10"
+}
+
+task runApp(type: JavaExec) {
+    main = 'com.nick.moneytransfer.Main'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+testSets {
+    integrationTest { dirName = 'integration-test' }
+}
+
+test {
+    useTestNG() {
+        useDefaultListeners = true
+        includeGroups 'UNIT'
+    }
+}
+
+integrationTest {
+    useTestNG() {
+        useDefaultListeners = true
+        includeGroups 'INTEGRATION'
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.60'
+    compile 'javax:javaee-api:8.0'
+    compile 'org.jetbrains.kotlin:kotlin-stdlib:1.3.60'
+    compile 'io.javalin:javalin:3.6.0'
+    compile 'org.slf4j:slf4j-simple:1.7.29'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
+    compile 'com.fasterxml.jackson.module:jackson-module-kotlin:2.10.1'
+    compile 'com.h2database:h2:1.4.200'
+    compile 'org.jetbrains.exposed:exposed:0.17.7'
+
+    testCompile 'org.testng:testng:7.0.0'
+    testCompile 'org.hamcrest:hamcrest-library:2.2'
+    testCompile "io.rest-assured:rest-assured:3.3.0"
+}
