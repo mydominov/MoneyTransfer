@@ -20,20 +20,16 @@ fun main() {
     }.start(7000)
 
     app.routes {
-        path("user") {
+        path("users") {
             get(UserController::getUsers)
-            path("/create") {
-                post(UserController::createUser)
-            }
-            path("/get") {
-                get("/:iban", UserController::getUser)
-            }
-            path("/delete") {
-                delete("/:iban", UserController::deleteUser)
-            }
-            path("/send") {
-                post(UserController::transferMoney)
-            }
+        }
+        path("user") {
+            post(UserController::createUser)
+            get("/:iban", UserController::getUser)
+            delete("/:iban", UserController::deleteUser)
+        }
+        path("/transfer") {
+            post(UserController::transferMoney)
         }
     }
 }

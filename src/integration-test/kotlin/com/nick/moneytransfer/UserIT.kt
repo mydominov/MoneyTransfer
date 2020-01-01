@@ -1,7 +1,6 @@
 package com.nick.moneytransfer
 
 import com.nick.moneytransfer.model.User
-import com.nick.moneytransfer.util.TestGroup
 import io.restassured.RestAssured
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
@@ -51,9 +50,9 @@ class UserIT {
 
         // Check that [User] was deleted.
         given()
-            .get("""/user/get/${expectedUser.iban}""")
+            .get("""/user/${expectedUser.iban}""")
             .then()
-            .statusCode(400)
+            .statusCode(404)
             .extract()
             .response()
             .asString()
@@ -72,7 +71,7 @@ class UserIT {
         given()
             .contentType(ContentType.JSON)
             .body("{\"ibanOfSender\": \"DE000\", \"ibanOfReceiver\": \"DE001\", \"amount\": 1000}")
-            .post("/user/send")
+            .post("/transfer")
             .then()
             .statusCode(200)
 
@@ -100,7 +99,7 @@ class UserIT {
         given()
             .contentType(ContentType.JSON)
             .body("{\"ibanOfSender\": \"DE111\", \"ibanOfReceiver\": \"DE221\", \"amount\": -30}")
-            .post("/user/send")
+            .post("/transfer")
             .then()
             .statusCode(400)
 
@@ -128,7 +127,7 @@ class UserIT {
         given()
             .contentType(ContentType.JSON)
             .body("{\"ibanOfSender\": \"DE100\", \"ibanOfReceiver\": \"DE200\", \"amount\": 0}")
-            .post("/user/send")
+            .post("/transfer")
             .then()
             .statusCode(400)
 
@@ -154,9 +153,9 @@ class UserIT {
         given()
             .contentType(ContentType.JSON)
             .body("{\"ibanOfSender\": \"DE479\", \"ibanOfReceiver\": \"DE666\", \"amount\": 5}")
-            .post("/user/send")
+            .post("/transfer")
             .then()
-            .statusCode(400)
+            .statusCode(404)
 
         val senderBalance = JsonPath.from(getUser("DE479")).getFloat("balance")
 
@@ -179,7 +178,7 @@ class UserIT {
             .body("{\"ibanOfSender\": \"DE666\", \"ibanOfReceiver\": \"DE202\", \"amount\": 999999}")
             .post("/user/send")
             .then()
-            .statusCode(400)
+            .statusCode(404)
 
         val receiverBalance = JsonPath.from(getUser("DE202")).getFloat("balance")
 
@@ -191,7 +190,7 @@ class UserIT {
 
     companion object {
         private fun getUsers() = given()
-            .get("/user")
+            .get("/users")
             .then()
             .statusCode(200)
             .extract()
@@ -199,7 +198,7 @@ class UserIT {
             .asString()
 
         private fun getUser(iban: String) = given()
-            .get("""/user/get/$iban""")
+            .get("""/user/$iban""")
             .then()
             .statusCode(200)
             .extract()
@@ -209,12 +208,12 @@ class UserIT {
         private fun createUser(json: String) = given()
             .contentType(ContentType.JSON)
             .body(json)
-            .post("/user/create")
+            .post("/user")
             .then()
             .statusCode(200)
 
         private fun deleteUser(iban: String) = given()
-            .delete("""/user/delete/$iban""")
+            .delete("""/user/$iban""")
             .then()
             .statusCode(200)
             .extract()

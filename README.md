@@ -9,21 +9,21 @@ Money transfer is a lightweight RESTful API for money transfers between accounts
 ## Available APIs
 
 ### Return list of users
-`GET -> http://localhost:7000/user`
+`GET -> http://localhost:7000/users`
 ### Return the user by the IBAN
-`GET -> http://localhost:7000/user/get/*IBAN_NUMBER*`<br />
+`GET -> http://localhost:7000/user/*IBAN_NUMBER*`<br />
 Where `*IBAN_NUMBER*` is replaced by the IBAN value.
 ### Add new User
 ```
-POST -> http://localhost:7000/user/create
-{"iban": "DE89 3704 0044 0532 0130 00", "fullName":"Sebastian Mueller", "amount": 1500}
+POST -> http://localhost:7000/user
+{"iban": "DE89 3704 0044 0532 0130 00", "fullName":"Sebastian Mueller", "balance": 1500}
 ```
 ### Delete the user by the IBAN
-`DELETE -> http://localhost:7000/user/delete/*IBAN_NUMBER*`<br />
+`DELETE -> http://localhost:7000/user/*IBAN_NUMBER*`<br />
 Where `*IBAN_NUMBER*` is replaced by the IBAN value.
 ### Transfer money
 ```
-POST -> http://localhost:7000/user/send
+POST -> http://localhost:7000/transfer
 {"ibanOfSender": "DE46 3084 1181 6666", "ibanOfReceiver": "US30 4321 7528 9264", "amount": 30}
 ```
 

@@ -1,7 +1,7 @@
 package com.nick.moneytransfer.db
 
+import com.nick.moneytransfer.exception.InvalidInputDataException
 import com.nick.moneytransfer.model.User
-import com.nick.moneytransfer.util.TestGroup
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.greaterThanOrEqualTo
@@ -40,14 +40,12 @@ class UserDaoTest {
         assertThat(receivedUser, `is`(notNullValue()))
         assertThat(receivedUser, `is`(user))
 
-        val wasDeleted: Boolean = userDao.delete(user.iban)
-        assertThat(wasDeleted, `is`(true))
+        userDao.delete(user.iban)
     }
 
-    @Test(groups = [TestGroup.UNIT])
+    @Test(groups = [TestGroup.UNIT], expectedExceptions = [InvalidInputDataException::class])
     fun `Delete unexisting user`() {
-        val wasDeleted: Boolean = userDao.delete("RANDOM-IBAN")
-        assertThat(wasDeleted, `is`(false))
+        userDao.delete("RANDOM-IBAN")
     }
 
     @Test(groups = [TestGroup.UNIT], expectedExceptions = [SQLException::class])

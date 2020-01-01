@@ -1,10 +1,12 @@
 package com.nick.moneytransfer.controller
 
-import com.nick.moneytransfer.db.UserBO
+import com.nick.moneytransfer.db.UserBo
+import com.nick.moneytransfer.exception.IbanDuplicationException
+import com.nick.moneytransfer.exception.InvalidInputDataException
+import com.nick.moneytransfer.exception.RecordNotFoundException
 import com.nick.moneytransfer.model.Transfer
 import com.nick.moneytransfer.model.User
 import io.javalin.http.Context
-import org.jetbrains.exposed.dao.EntityID
 
 /**
  * Main controller for operations with [User].
@@ -13,30 +15,25 @@ import org.jetbrains.exposed.dao.EntityID
  */
 object UserController {
 
+    private val USER_BO: UserBo = UserBo()
+
     /**
      * Returns the list of users.
      */
     fun getUsers(ctx: Context) {
-        val users = UserBO.getUsers()
-
-        if (users.isEmpty()) {
-            ctx.result("No users are present in the database.")
-        } else {
-            ctx.json(users)
-        }
+        val users = USER_BO.getUsers()
+        ctx.json(users)
     }
 
     /**
      * Returns the [User] by IBAN.
      */
     fun getUser(ctx: Context) {
-        val user: User? = UserBO.get(ctx.pathParam("iban"))
-
-        if (user == null) {
-            ctx.status(400)
+        try {
+            ctx.json(USER_BO.get(ctx.pathParam("iban")))
+        } catch (exception: RecordNotFoundException) {
+            ctx.status(404)
             ctx.result("No user with such IBAN was found!")
-        } else {
-            ctx.json(user)
         }
     }
 
@@ -44,13 +41,12 @@ object UserController {
      * Removes the [User] from the DB.
      */
     fun deleteUser(ctx: Context) {
-        val wasDeleted: Boolean = UserBO.delete(ctx.pathParam("iban"))
-
-        if (wasDeleted) {
+        try {
+            USER_BO.delete(ctx.pathParam("iban"))
             ctx.result("User was successfully deleted!")
-        } else {
+        } catch (exception: InvalidInputDataException) {
             ctx.status(400)
-            ctx.result("User was not deleted!")
+            ctx.result(exception.message ?: "User was not deleted!")
         }
     }
 
@@ -58,13 +54,15 @@ object UserController {
      * Creates a [User] in the DB.
      */
     fun createUser(ctx: Context) {
-        val entityID: EntityID<Int>? = UserBO.create(ctx.body<User>())
-
-        if (entityID == null) {
-            ctx.status(400)
-            ctx.result("User was not created! Possible IBAN duplication or syntax exception!")
-        } else {
+        try {
+            USER_BO.create(ctx.body<User>())
             ctx.result("User was created successfully!")
+        } catch (exception: IbanDuplicationException) {
+            ctx.status(400)
+            ctx.result(
+                exception.message
+                    ?: "User was not created! Possible IBAN duplication or syntax exception!"
+            )
         }
     }
 
@@ -72,19 +70,20 @@ object UserController {
      * Transfers money from one account to another.
      */
     fun transferMoney(ctx: Context) {
-        val transfer = ctx.body<Transfer>()
-
-        val wasTransferred: Boolean = UserBO.moneyTransfer(
-            transfer.ibanOfSender,
-            transfer.ibanOfReceiver,
-            transfer.amount
-        )
-
-        if (!wasTransferred) {
+        try {
+            val transfer = ctx.body<Transfer>()
+            USER_BO.moneyTransfer(
+                transfer.ibanOfSender,
+                transfer.ibanOfReceiver,
+                transfer.amount
+            )
+            ctx.json("The money was successfully transferred!")
+        } catch (exception: InvalidInputDataException) {
             ctx.status(400)
-            ctx.result("Invalid data was provided! Please, re-check your input.")
-        } else {
-            ctx.json(wasTransferred)
+            ctx.result(exception.message ?: "Invalid amount was provided! Please, re-check your input.")
+        } catch (exception: RecordNotFoundException) {
+            ctx.status(404)
+            ctx.result(exception.message ?: "Invalid IBAN was provided! Please, re-check your input.")
         }
     }
 }

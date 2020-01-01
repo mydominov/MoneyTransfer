@@ -1,4 +1,4 @@
-package com.nick.moneytransfer.util
+package com.nick.moneytransfer
 
 /**
  * Types of tests.
@@ -10,5 +10,4 @@ class TestGroup {
         const val UNIT = "UNIT"
         const val INTEGRATION = "INTEGRATION"
     }
-
 }
